@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t aparmakovski/docker-react-multi-container -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run aparmakovski/docker-react-multi-container npm test -- --coverage
+
+after_success:
+  - docker build -t aparmakovski/multi-client ./client
+  - docker build -t aparmakovski/multi-nginx ./nginx
+  - docker build -t aparmakovski/multi-server ./server
+  - docker build -t aparmakovski/multi-worker ./worker
+  # login to Dockerhub
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push aparmakovski/multi-client
+  - docker push aparmakovski/multi-server
+  - docker push aparmakovski/multi-worker
+  - docker push aparmakovski/multi-nginx
+  
